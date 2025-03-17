@@ -1,0 +1,38 @@
+<?php
+
+// Подключаем файлы контроллеров
+require_once 'controllers/UserController.php';
+
+// Определяем маршруты
+$urlList = [
+  "/funds/" => [
+    "GET" => ["FundsController", "listFunds"],
+    "POST" => ["FundsController", "createFund"]
+  ],
+  "/users/" => [
+    "GET" => ["UserController", "listUsers"],
+    "POST" => ["UserController", "createUser"]
+  ]
+];
+
+
+// Получаем текущий URL и метод запроса
+$requestUri = parse_url($_SERVER["REQUEST_URI"], PHP_URL_PATH);
+$requestMethod = $_SERVER["REQUEST_METHOD"];
+
+
+// Проверяем, есть ли такой маршрут в массиве
+if (isset($urlList[$requestUri][$requestMethod])) {
+    list($controllerName, $methodName) = $urlList[$requestUri][$requestMethod];
+
+    // Подключаем нужный контроллер (если он не подключен заранее)
+    require_once "controllers/" . $controllerName . ".php";
+
+    // Создаем экземпляр контроллера и вызываем метод
+    $controller = new $controllerName();
+    $controller->$methodName();
+} else {
+    // Если маршрут не найден, выводим 404
+    http_response_code(404);
+    echo "404 Not Found";
+}
