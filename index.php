@@ -1,6 +1,5 @@
 <?php
 
-
 require_once 'autoload.php';
 
 $urlList = [
@@ -8,16 +7,19 @@ $urlList = [
     "GET" => ["FundsController", "listFunds"],
     "POST" => ["FundsController", "createFund"]
   ],
-  "/users/" => [
-    "GET" => ["UserController", "listUsers"],
-    "POST" => ["UserController", "createUser"]
+  "/users/list" => [
+    "GET" => ["UserController", "list"]
+  ],
+  "/users/get" => [
+    "GET" => ["UserController", "getUser"]
+  ],
+  "/users/update" => [
+    "PUT" => ["UserController", "updateUser"]
   ]
 ];
 
-
 $requestUri = parse_url($_SERVER["REQUEST_URI"], PHP_URL_PATH);
 $requestMethod = $_SERVER["REQUEST_METHOD"];
-
 
 // Проверяем, есть ли такой маршрут в массиве
 if (isset($urlList[$requestUri][$requestMethod])) {
@@ -25,8 +27,14 @@ if (isset($urlList[$requestUri][$requestMethod])) {
 
     // Создаем экземпляр контроллера и вызываем метод
     $controller = new $controllerName();
-    $controller->$methodName();
+
+    // Если эндпоинт /users/get/{id}, извлекаем ID из запроса
+    if ($requestUri === "/users/get" && isset($_GET['id'])) {
+        $controller->$methodName($_GET['id']);
+    } else {
+        $controller->$methodName();
+    }
 } else {
     http_response_code(404);
-    echo "404 Not Found";
+    echo json_encode(["status" => "error", "message" => "Эндпоинт не найден"]);
 }
